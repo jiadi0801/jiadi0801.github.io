@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>JSON - YAML converter</title>
+    <link rel="stylesheet" type="text/css" href="//misc.360buyimg.com/jdf/1.0.0/unit/ui-base/1.0.0/ui-base.css" media="all"/>
+    <style>
+        .wrapper {
+            width: 1100px;
+            margin: 0 auto;
+        }
+        .data-area textarea {
+            width: 500px;
+            height: 500px;
+            overflow: auto;
+        }
+        .conv {
+            width: 80px;
+            height: 500px;
+            text-align: center;
+            line-height: 500px;
+        }
+        h1 {
+            height: 56px;
+            line-height: 56px;
+        }
+    </style>
+</head>
+
+<body>
+<div class="wrapper clearfix" id="ph">
+    <h1>json yaml 转换</h1>
+    <div class="data-area fl">
+        <h3>JSON</h3>
+        <textarea id="json"></textarea> 
+    </div>
+    <div class="conv fl">
+        <button onclick="toJSON()">&lt;</button>
+        <button onclick="toYAML()">&gt;</button>
+    </div>
+    <div class="data-area fl">
+        <h3>YAML</h3>
+        <textarea id="yaml"></textarea> 
+    </div>
+</div>
+
+<script type="text/javascript" src="../dist/mockyaml.js"></script>
+s
+<script type="text/javascript">
+    var json = document.querySelector('#json');
+    var yaml = document.querySelector('#yaml');
+    function toJSON() {
+        json.value = JSON.stringify(Mockyaml.toJSON(yaml.value), null, 2);
+    }
+    function toYAML() {
+        yaml.value = Mockyaml.toYAML(JSON.parse(json.value));
+    }
+
+</script>
+</body>
+
+</html>
