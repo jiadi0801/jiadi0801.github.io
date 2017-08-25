@@ -33,9 +33,9 @@
 <div class="wrapper clearfix">
     <h1>快速链接</h1>
     <div>
-        <a href="https://github.com/jiadi0801/mock-yaml">返回GitHub</a>
-        <a href="http://nodeca.github.io/js-yaml/">js-yaml</a>
-        <a href="http://www.ruanyifeng.com/blog/2016/07/yaml.html">阮一峰教程</a>
+        <a href="https://github.com/jiadi0801/mock-yaml">返回GitHub</a><br/>
+        <a href="http://nodeca.github.io/js-yaml/">js-yaml</a><br/>
+        <a href="http://www.ruanyifeng.com/blog/2016/07/yaml.html">阮一峰教程</a><br/>
         <a href="http://mockjs.com/examples.html">mockjs示例</a>
     </div>
     <h1>json yaml 转换</h1>
@@ -60,7 +60,8 @@
         json.value = JSON.stringify(Mockyaml.toJSON(yaml.value), null, 2);
     }
     function toYAML() {
-        yaml.value = Mockyaml.toYAML(JSON.parse(json.value));
+        var value = eval('(' + json.value + ')');
+        yaml.value = Mockyaml.toYAML(value);
     }
 
 </script>
