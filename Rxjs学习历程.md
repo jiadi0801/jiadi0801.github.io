@@ -107,3 +107,12 @@ setTimeout(() => {
 ```
 但是大概能理解文首的`Rx.Observable.from([10, 20, 30]);`了
 
+## 利用Promise.all来理解Rxjs
+```JS
+// Filter out target values less than 3 characters long
+input.filter(event => event.target.value.length > 2)
+  .map(event => event.target.value)
+  .subscribe(value => console.log(value)); // "hel"
+```
+如果`input`是一个promise对象，那么filter将封装在then里，然后 then then，到subscribe这一级，得到的就是一个[value....]数组。subscribe类似一个map函数，依次执行subscribe里的回调。
+
