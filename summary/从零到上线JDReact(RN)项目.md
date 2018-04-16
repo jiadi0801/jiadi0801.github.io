@@ -10,11 +10,11 @@
 
 JDReact能够在Windows上开发iOS项目。
 
-## 章节
+## Hello World
 #### 申请接入
 占坑
 
-#### 开始JDReact的Hello world
+#### 启动开发环境
 在申请成功后，开发人员会加入一个已初始化成功的JDReact项目。这个项目是可直接运行的，启动项目成功后在手机上会看到“Hello, yourPrjectName”。
 
 ```jsx
@@ -29,39 +29,43 @@ JDReact能够在Windows上开发iOS项目。
 
 那么如何启动这个项目呢？
 
-嗯，clone到本地，npm install一下，然后在`package.json`里找找哪条命令像启动命令，就是它了！`npm start`。
+嗯，clone到本地，`npm install`，然后在`package.json`里找找哪条命令像启动命令，就是它了！`npm start`。
 
 实际上，你可能在npm install时就出错了，因为JDReact项目目前要依托京东的npm内部库。
 
 ##### 京东npm和yarn
 
-京东npm地址为：http://registry.m.jd.com/。
+京东npm仓库地址为：http://registry.m.jd.com/。 可使用nrm来管理npm仓库。
 
 如果用Mac开发，可能就不需要yarn，但是用Windows，`npm install or npm start`时你可能会遇到`errno 3221225477`安装错误(似乎是npm在windows上的一个bug)，这时候用`yarn install`来安装能够避免这个错误。
 
-配好registry后用`yarn install`安装试试吧。安装成功后，接着执行`npm start`吧。
+配好registry后用`yarn install`安装依赖包，接着执行`npm start`。
 
-项目启动后，入口在哪呢？怎么在手机上调试呢？
-
-利用`npm start debug`打开调试入口。
+项目启动后，入口在哪呢？怎么在手机上调试呢？可利用`npm start debug`打开调试入口。
 
 ![debug配置界面](http://img14.360buyimg.com/uba/jfs/t16993/117/1581866251/184631/481bc220/5ad43f5fNe521ed0f.png)
 
-在这个界面，一般只需要修改IP，保证和手机同网段。然后点击生成二维码，等待用测试APP扫描。
+【图1】debug配置界面
 
-##### 测试手机
+在这个界面，一般只需要修改IP，保证<b>和手机同网段</b>。
+
+点击生成二维码，等待用测试APP扫描。
+
+#### 访问开发工程
+
+##### 准备测试手机
 
 安卓、iOS测试机各备一个即可，我在开发过程中也用过其他测试机，来验证某些难解决的bug是否是因为机型问题导致，但实际上，各个测试机表现都一致，问题出现在其他地方。JDReact也不像Web开发对屏幕分辨率那么敏感，依照750px设计宽进行开发，调用`JDDevice.getRpx(750宽设计稿数值)`自动生成设备相应宽度即可。
 
 从应用商店下载的京东APP是没法进行调试的，需要下载京东的Debug客户端。
 
-Debug客户端下载地址在京东“无线持续集成平台”上，可能需要申请下载权限。下载时，请认准包名的debug字样。
+Debug客户端下载地址在京东“无线持续集成平台”上，可能需要申请下载权限。下载时，请认准包名的debug/jrdebug字样。
 
 安卓：
 
-安卓客户端安卓都挺方便，不赘述。
+安卓客户端安卓挺方便，不赘述。
 
-在<b>本地调试</b>阶段，需要开启“账户设置--设置--打开jdreact调试”功能，在<b>打包测试</b>阶段，则需要关闭此功能。
+安装成功后，在<b>本地调试</b>阶段，需要开启“账户设置--设置--打开jdreact调试”功能，在<b>打包测试</b>阶段，则需要关闭此功能。
 
 iOS：
 
