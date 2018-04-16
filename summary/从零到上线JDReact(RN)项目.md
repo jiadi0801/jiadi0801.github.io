@@ -112,7 +112,7 @@ import { JDImage, JDJumping, JDText, JDDevice, JDTouchableWithoutFeedback } from
 
 抛弃CSS样式中的继承、父子选择器思路，哪个样式属性作用于哪个组件就要写在这个组件的style对象里。
 
-### 路由跳转
+### 路由
 在入口页，引入`JDRouter`定义路由页面。
 ```
 import { JDRouter, } from '@jdreact/jdreact-core-lib';
@@ -164,16 +164,18 @@ JDReact开发的目标是兼容三端，如果上来就用H5开发方式用xhr�
 ### Dialog
 一般点击弹出对话框的位置处于一个较深且小的子组件中，如果是客户端，将Dialog写在子组件中是没什么问题的，APP的原生机制能保证整个蒙层覆盖屏幕。
 
-但是当转为H5时，就会遇到fixed的一个机制。。。。
+但是当转为H5时，就会遇到fixed的一个机制：当父元素带有transform属性时，子元素absolute,fixed会相对于该父元素。
 
-dialog，
-第三方包，转web
-状态枚举
-下拉刷新
-顶部导航
-底部导航
-APP本身生命周期
+这个时候，子元素里的Dialog就会蒙住这个父元素，而不是整个屏幕，导致样式出错，因此，对于这种全局性质的组件，最好放在根节点下，利用redux或其他方式进行数据传递。
 
+### 第三方包转H5
+对于那些不支持H5形式的包，如果用Platform.OS进行平台区分，由于import引用了转H5不支持的包，会编译错误，可以利用component.web.js，component.ios.js，component.android.js来避免。
+
+### APP运行状态
+RN将APP运行状态抽象成`active`,`background`,`inactive`三种状态，在iOS下，当处于非active状态下，setTimeout/setInterval会休眠，因此，在处理定时任务时，需要关注APP运行状态。实际上，浏览器也有判断页面是否处于激活状态的`document.hidden`，web页面的动画也存在休眠的情况。
+
+### JDScrollTabView
+【】TODO
 
 ## 编译打包
 项目开发进度良好，我想发个包看看RN到底怎么样，毕竟在本地调试阶段，由于大量调试代码存在，速度并不是那么令人满意。
