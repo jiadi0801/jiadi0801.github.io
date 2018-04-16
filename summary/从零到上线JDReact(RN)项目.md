@@ -73,11 +73,11 @@ iOS需要将ipa包下载到本地然后通过iTools进行本地安装。iOS“�
 
 ##### 在手机上看到“Hello, yourPrjectName”
 
-将手机和上图中的IP连在同一网段，用测试APP扫描“安卓/iOS跳转”下的二维码，激动人心的时刻到了，手机屏幕见红了！恭喜你，你用的是安卓机。
+将手机和【图1】中的IP连在同一网段，用测试APP扫描“安卓/iOS跳转”下的二维码，激动人心的时刻到了，手机屏幕见红了！恭喜你，你用的是安卓机。
 
 提示“Could not connect to development server”。
 
-这个时候，摇一摇手机，弹出了一系列菜单选项，最下边有一行“Dev Settings”，点击进去，找到“Debug server host & port for device”，输入上图IP和端口，保存，reload。
+这个时候，摇一摇手机，弹出了一系列菜单选项，最下边有一行“Dev Settings”，点击进去，找到“Debug server host & port for device”，输入【图1】IP和端口，保存，reload。
 
 成功！
 
