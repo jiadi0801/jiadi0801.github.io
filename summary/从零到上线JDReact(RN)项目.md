@@ -7,12 +7,9 @@
 
 写本文的目标是让初用JDReact的用户能通过这篇文章上手JDReact。相信在上手之后，后续的开发会一坦平洋。
 
-
-JDReact能够在Windows上开发iOS项目。
-
 ## Hello World
 ### 申请接入
-【】占坑
+请联系JDReact开发团队创建项目git工程。
 
 ### 启动开发环境
 在申请成功后，开发人员会加入一个已初始化成功的JDReact项目。这个项目是可直接运行的，启动项目成功后在手机上会看到“Hello, yourPrjectName”。
@@ -85,10 +82,90 @@ iOS需要将ipa包下载到本地然后通过iTools进行本地安装。iOS“�
 
 ## 开发及采坑
 
-网络，JDNetwork
-路由跳转
-动画，能用gif就别用animation
-细线条： dpx
+### Windows兼容性
+Windows下存在`npm start`或`npm run web-start`启动不起来的问题。
+
+`npm start`启动不起来的问题，先执行`yarn clean cache`，然后手工删除工程下的node_modules，再用`yarn install`安装依赖包。
+
+`npm run web-start`启动不了的问题，先执行`yarn clean cache`，然后手工删除工程下的node_modules，再用`npm install`安装依赖包。
+
+就是这么奇妙。
+
+
+### 常用包
+```
+import React from 'react';
+import PropTypes from 'prop-types';
+import { View, StyleSheet, Platform, } from 'react-native';
+import { JDImage, JDJumping, JDText, JDDevice, JDTouchableWithoutFeedback } from '@jdreact/jdreact-core-lib';
+```
+`@jdreact/jdreact-core-lib`是JDReact核心包，所有组件都在这里面，源码就处于这个目录。
+
+### 样式
+利用`StyleSheet`创建样式对象，布局采用flex布局方式，请尽情使用flex。
+
+大部分情况下，用`JDDevice.getRpx()`给宽高边距等赋值。类似写sass的px2rem，用函数来适配手机。
+
+在设计稿标注1-4个像素的情况下，使用`JDDevice.getDpx()`，因为`getRpx`函数会对计算出来的值进行取整操作，因此，计算出0.5像素会被取整到0，导致细线显示不出来。
+
+所有节点默认带有`position: 'relative'`属性，因此直接使用left,top属性是可以的。需要绝对定位改成`position: 'absolute'`。
+
+抛弃CSS样式中的继承、父子选择器思路，哪个样式属性作用于哪个组件就要写在这个组件的style对象里。
+
+### 路由跳转
+在入口页，引入`JDRouter`定义路由页面。
+```
+import { JDRouter, } from '@jdreact/jdreact-core-lib';
+const { Router, Route, } = JDRouter;
+import A from './A';
+import B from './B';
+export default class JDReactHello extends React.Component {
+  render() {
+    return (
+      <Router initRoute={{ key: 'acomp' }}>
+        <Route key="acomp" type="resetTo" component={A}/>
+        <Route key="bcomp" component={B}/>
+      </Router>
+    );
+  }
+}
+```
+在点击A页面按钮跳转B页面时，怎么调用跳转方法呢？
+
+首先在A页面定义contextTypes静态变量，用于获取React的context上下文。
+```
+export default class A extends React.Component {
+  static contextTypes = {
+    router: PropTypes.object
+  }
+ }
+```
+
+`this.context.router`即为我们获取到router实例，调用this.context.router[`to${upperFirstWrod(key)}`](props)进行跳转，比如跳转到B页面，则写成`this.context.router.toBcomp({})`。
+
+所有在<Router>里的子孙元素，如果定义了上述`contextTypes`，均能获取到router实例。
+
+### 网络请求
+如果看过RN文档，可能就会用fetch方法来进行网络请求，甚至会用axios。千万别着急开发，JDReact里，最好的请求方式是用`JDNetwork`进行网络请求。
+
+JDReact开发的目标是兼容三端，如果上来就用H5开发方式用xhr进行请求，那客户端请求就会无cookie而请求失败。
+
+京东客户端要求所有请求都走京东网关接口，客户端也提供了专门的SDK，如果现在的后端接口还是常规H5接口(ajax or jsonp)，及时联系后端提供网关接口。网关接口里有个<b>很重要的参数</b>`code: 0`，如果返回json根没有`code: 0`，会被SDK直接视为错误。具体详见网关文档。
+
+根据环境不同京东登录态分四种：APP登录，H5登录，PC登录，微信手Q登录。需要根据环境来传递登录态标识。
+
+包裹`JDNetwork`,调用自己包裹的请求方法，方便扩展。
+
+### 动画
+笔者写了一个loading转动的动画，测试的时候在安卓机上发现这个loading动画组件会阻塞他父级组件的动画，具体原因笔者也不太了解，最后采用gif替代，因此，写动画的原则是：
+
+能用gif就别用动画，能平铺动画就别嵌套。
+
+### Dialog
+一般点击弹出对话框的位置处于一个较深且小的子组件中，如果是客户端，将Dialog写在子组件中是没什么问题的，APP的原生机制能保证整个蒙层覆盖屏幕。
+
+但是当转为H5时，就会遇到fixed的一个机制。。。。
+
 dialog，
 第三方包，转web
 状态枚举
@@ -96,8 +173,6 @@ dialog，
 顶部导航
 底部导航
 APP本身生命周期
-样式
-Windows坑，安装
 
 
 ## 编译打包
