@@ -80,7 +80,9 @@ iOS需要将ipa包下载到本地然后通过iTools进行本地安装。iOS“�
 
 成功！
 
-## 开发及采坑
+## 常见开发问题及采坑
+
+在开发过程中，不免遇到各种问题，我总结了开发过程中的一些问题、关键点，希望能有所帮助。
 
 ### Windows兼容性
 Windows下存在`npm start`或`npm run web-start`启动不起来的问题。
@@ -90,7 +92,6 @@ Windows下存在`npm start`或`npm run web-start`启动不起来的问题。
 `npm run web-start`启动不了的问题，先执行`yarn clean cache`，然后手工删除工程下的node_modules，再用`npm install`安装依赖包。
 
 就是这么奇妙。
-
 
 ### 常用包
 ```
@@ -104,7 +105,7 @@ import { JDImage, JDJumping, JDText, JDDevice, JDTouchableWithoutFeedback } from
 ### 样式
 利用`StyleSheet`创建样式对象，布局采用flex布局方式，请尽情使用flex。
 
-大部分情况下，用`JDDevice.getRpx()`给宽高边距等赋值。类似写sass的px2rem，用函数来适配手机。
+大部分情况下，用`JDDevice.getRpx()`给宽高边距赋值。目的类似写sass的px2rem，都为方便转换成各手机相应的像素值。
 
 在设计稿标注1-4个像素的情况下，使用`JDDevice.getDpx()`，因为`getRpx`函数会对计算出来的值进行取整操作，因此，计算出0.5像素会被取整到0，导致细线显示不出来。
 
@@ -174,8 +175,9 @@ JDReact开发的目标是兼容三端，如果上来就用H5开发方式用xhr�
 ### APP运行状态
 RN将APP运行状态抽象成`active`,`background`,`inactive`三种状态，在iOS下，当处于非active状态下，setTimeout/setInterval会休眠，因此，在处理定时任务时，需要关注APP运行状态。实际上，浏览器也有判断页面是否处于激活状态的`document.hidden`，web页面的动画也存在休眠的情况。
 
-### JDScrollTabView
-【】TODO
+### JDScrollView作为FlatList的滚动渲染组件
+做商品列表，或者各种列表时会遇到下拉刷新的需求，下拉刷新统一采用京东下拉样式。因此采用JDScrollView作为FlatList的滚动渲染组件。
+
 
 ## 编译打包
 项目开发进度良好，我想发个包看看RN到底怎么样，毕竟在本地调试阶段，由于大量调试代码存在，速度并不是那么令人满意。
