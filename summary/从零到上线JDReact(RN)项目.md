@@ -146,6 +146,17 @@ export default class A extends React.Component {
 
 所有在<Router>里的子孙元素，如果定义了上述`contextTypes`，均能获取到router实例。
 
+在定义路由key时，将key统一定义，方便在其他组件中调用，也方便修改。不推荐直接使用字符串定义。
+
+```
+// 不推荐
+<Route key="page" component={Page}/>
+
+// 推荐
+import { ROUTES } from '../util';
+<Route key={ROUTES.PAGE} component={Page}/>
+```
+
 ### 网络请求
 如果看过RN文档，可能就会用fetch方法来进行网络请求，甚至会用axios。千万别着急开发，JDReact里，最好的请求方式是用`JDNetwork`进行网络请求。
 
