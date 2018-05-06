@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="keywords" content=""/>
+<meta name="description" content="" />
+<title>Rxjs-demo</title>
+<link rel="stylesheet" href="../css/bootstrap.min.css">
+<script src="../js/jquery-3.3.1.min.js"></script>
+<script src="../js/bootstrap.min.js"></script>
+<style>
+	.container {
+		margin: 0 auto;
+		width: 800px;
+		padding: 10px;
+	}
+	.bd-example {
+		position: relative;
+    	border: solid #f8f9fa;
+		padding: 1.5rem;
+	    margin-right: 0;
+	    margin-left: 0;
+	    border-width: .2rem;
+	}
+</style>
+</head>
+<body>
+<div class="container">
+	<h2>1.最直接的事件</h2>
+	<p>命令式的，直接响应</p>
+	<div class="bd-example">
+		<div>var a = 1;</div>
+	</div>
+</div>
+
+<div class="container">
+	<h2>2.on-emit模式 - DOM事件</h2>
+	<p>典型的on-emit模式</p>
+	<p>on将回调函数放入事件响应队列中，emit触发执行队列中每个函数。</p>
+	<div class="bd-example">
+		<button id="ex1-btn" type="button" class="btn btn-primary">点击</button>
+		<span id="ex1-span">点击前</span>
+	</div>
+</div>
+<script>
+	!function () {
+		var btn = $('#ex1-btn');
+		var count = 1;
+		btn.click(function (e) {
+			$('#ex1-span').html('---------被点击 +' + count);
+			count++;
+		});
+	}();
+</script>
+
+<div class="container">
+	<h2>3.on-emit模式 - 手动emit</h2>
+	<p>某个数据影响了多块视图，而更改这个数据的位置很多</p>
+	<p>没有双向绑定的帮助，自动监听是不存在的</p>
+	<p>维护一个valueChanged(newValue)方法，更改数据方调用valueChanged，被影响方逻辑写入valueChanged函数体内</p>
+	<div class="bd-example">
+		<div class="mb-1">change1.vm：<input type="number" id="c3"></div>
+		<div class="mb-1">change2.vm：<button id="ex3-btn" type="button" class="btn btn-primary">count++</button></div>
+		
+		<div class="card mt-3 mb-1">
+			<h4>count index.vm</h4>
+			<p><span id="count">1</span></p>
+		</div>
+		<div class="card mb-1">
+			<h4>视图 view1.vm</h4>
+			<p>视图渲染为count加100</p>
+			<p><span id="count1">1</span></p>
+		</div>
+		<div class="card mb-1">
+			<h4>视图 view2.vm</h4>
+			<p>视图渲染为count乘3</p>
+			<p><span id="count2">1</span></p>
+		</div>
+	</div>
+</div>
+<script>
+	!function () {
+		// 定义一个简单的事件触发器 util.js
+		var EventEmitter = function () {
+			this.typeMap = {};
+		}
+		EventEmitter.prototype.on = function (type, callback) {
+			if (!this.typeMap[type]) {
+				this.typeMap[type] = [];
+			}
+			this.typeMap[type].push(callback);
+		}
+		EventEmitter.prototype.emit = function (type, data) {
+			let cbList = this.typeMap[type] || [];
+			cbList.map(cb => {
+				cb({data: data});
+			});
+		}
+		EventEmitter.prototype.off = function () {}
+
+		var ee = new EventEmitter(); // export出去
+
+		// 注册事件
+		// index.js: require(ee);
+		ee.on('countChange', function (e) {
+			$("#count").html(e.data.count);
+		});
+		// view1.js: require(ee);
+		ee.on('countChange', function (e) {
+			$("#count1").html(e.data.count + 100);
+		});
+		// view2.js: require(ee);
+		ee.on('countChange', function (e) {
+			$("#count2").html(e.data.count * 3);
+		});
+		// 看上去是双向绑定
+		ee.on('countChange', function (e) {
+			$("#c3").val(e.data.count);
+		});
+
+		var count = 0;
+		$('#ex3-btn').click(function () {
+			count++;
+			ee.emit('countChange', {count: count});
+		});
+		$("#c3").on('input propertychange', function (e) {
+			count = Number(e.target.value || 0);
+			ee.emit('countChange', {count: count});
+		});
+	}();
+</script>
+
+<div class="container">
+	<h2>4.实时搜索节流</h2>
+	<p>debounce和throttle是常见的事件处理函数</p>
+	<p>比如：滚动页面节流，搜索节流，点击节流</p>
+	<div class="bd-example">
+		<div class="mb-1">throttle time(ms)：<input type="text" id="c4-1" value="200"></div>
+		<button id="ex4-btn" type="button" class="btn btn-primary">重置</button>
+		<button id="ex4-btn-1" type="button" class="btn btn-primary">模拟输入80次，每次输入间隔30ms</button>
+		<div class="card mt-3 mb-1">
+			<div class="mb-1">搜索框：<input type="text" id="c4-2"></div>
+			<p>search count: <span id="ex4-result">0</span></p>
+			<p>throttle search count: <span id="ex4-result-t">0</span></p>
+		</div>
+	</div>
+</div>
+<script>
+!function() {
+	function throttle(func, wait, options) {
+	    var context, args, result;
+	    var timeout = null;
+	    var previous = 0;
+	    if (!options) options = {};
+	    var later = function() {
+	        previous = options.leading === false ? 0 : new Date().getTime();
+	        timeout = null;
+	        result = func.apply(context, args);
+	        if (!timeout) context = args = null;
+	    };
+	    return function() {
+	        var now = new Date().getTime();
+	        if (!previous && options.leading === false) previous = now;
+	        var remaining = wait - (now - previous);
+	        context = this;
+	        args = arguments;
+	        if (remaining <= 0 || remaining > wait) {
+	            if (timeout) {
+	                clearTimeout(timeout);
+	                timeout = null;
+	            }
+	            previous = now;
+	            result = func.apply(context, args);
+	            if (!timeout) context = args = null;
+	        } else if (!timeout && options.trailing !== false) {
+	            timeout = setTimeout(later, remaining);
+	        }
+	        return result;
+	    };
+	}
+
+	var throttleTime = 200;
+	var originCount = 0;
+	var originFn = function () {
+		originCount++;
+		$('#ex4-result').html(originCount);
+	};
+
+	var throttleCount = 0;
+	var throttleOriginFn = function () {
+		throttleCount++;
+		$('#ex4-result-t').html(throttleCount);
+	}
+	var throttleFn = throttle(throttleOriginFn, throttleTime);
+
+
+	$("#c4-1").on('input propertychange', function (e) {
+		throttleTime = Number(e.target.value || 200);
+		throttleFn = throttle(throttleOriginFn, throttleTime);
+	});
+
+	$("#c4-2").on('input propertychange', function (e) {
+		originFn();
+		throttleFn();
+	});
+
+	$("#ex4-btn").on('click', function (e) {
+		originCount = 0;
+		throttleCount = 0;
+	});
+	$("#ex4-btn-1").on('click', function (e) {
+		var count = 1;
+		var timer = setInterval(function() {
+			if (count > 79) {
+				clearInterval(timer);
+			}
+			count++;
+			originFn();
+			throttleFn();
+		}, 30);
+	});
+}();
+</script>
+</body>
+</html>

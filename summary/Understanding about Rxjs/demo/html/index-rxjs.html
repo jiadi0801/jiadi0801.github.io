@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="keywords" content=""/>
+<meta name="description" content="" />
+<title>Rxjs-demo</title>
+<link rel="stylesheet" href="../css/bootstrap.min.css">
+<script src="../js/jquery-3.3.1.min.js"></script>
+<script src="../js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../js/rx.all.js"></script>
+<style>
+	.container {
+		margin: 0 auto;
+		width: 800px;
+		padding: 10px;
+	}
+	.bd-example {
+		position: relative;
+    	border: solid #f8f9fa;
+		padding: 1.5rem;
+	    margin-right: 0;
+	    margin-left: 0;
+	    border-width: .2rem;
+	}
+</style>
+</head>
+<body>
+<div class="container">
+	<h2>1.最直接的事件</h2>
+	<p>命令式的，直接响应</p>
+	<div class="bd-example">
+		<div>var a = 1;</div>
+	</div>
+</div>
+
+<div class="container">
+	<h2>2.on-emit模式 - DOM事件</h2>
+	<p>包裹DOM对象甚至是jQuery对象</p>
+	<p>Rxjs不关心事件源是什么，只要它满足on-emit模式就行。</p>
+	<div class="bd-example">
+		<button id="ex1-btn" type="button" class="btn btn-primary">点击</button>
+		<span id="ex1-span">点击前</span>
+	</div>
+</div>
+<script>
+	!function () {
+		var btn = $('#ex1-btn');
+		var source = Rx.Observable.fromEvent(btn, 'click');
+		
+		source
+		.map(e => 1)
+		.scan((acc, curr) => acc + curr, 0)
+		.subscribe(val => {
+			$('#ex1-span').html('---------被点击 +' + val);
+		});
+	}();
+</script>
+
+<div class="container">
+	<h2>3.on-emit模式 - 手动emit</h2>
+	<p>subscribe和on的差别在于：注册事件方不需要知道具体的事件名，也不需要知道事件的触发方式</p>
+	<p>好处有：减少魔术字符串'click', 'countChange'；容易更改事件源的实现方式</p>
+	<div class="bd-example">
+		<div class="mb-1">change1.vm：<input type="number" id="c3"></div>
+		<div class="mb-1">change2.vm：<button id="ex3-btn" type="button" class="btn btn-primary">count++</button></div>
+		
+		<div class="card mt-3 mb-1">
+			<h4>count index.vm</h4>
+			<p><span id="count">1</span></p>
+		</div>
+		<div class="card mb-1">
+			<h4>视图 view1.vm</h4>
+			<p>视图渲染为count加100</p>
+			<p><span id="count1">1</span></p>
+		</div>
+		<div class="card mb-1">
+			<h4>视图 view2.vm</h4>
+			<p>视图渲染为count乘3</p>
+			<p><span id="count2">1</span></p>
+		</div>
+	</div>
+</div>
+<script>
+	!function () {
+		// 定义一个简单的事件触发器 util.js
+		var EventEmitter = function () {
+			this.typeMap = {};
+		}
+		EventEmitter.prototype.on = function (type, callback) {
+			if (!this.typeMap[type]) {
+				this.typeMap[type] = [];
+			}
+			this.typeMap[type].push(callback);
+		}
+		EventEmitter.prototype.emit = function (type, data) {
+			let cbList = this.typeMap[type] || [];
+			cbList.map(cb => {
+				cb({data: data});
+			});
+		}
+		EventEmitter.prototype.off = function () {}
+
+		var ee = new EventEmitter(); 
+		var countChangeSource = Rx.Observable.fromEvent(ee, 'countChange'); // export出去
+
+		// 注册事件
+		// index.js: require(ee);
+		countChangeSource.subscribe(e => {
+			$("#count").html('rxjs subscribe ' + e.data.count);
+		});
+		// view1.js: require(ee);
+		countChangeSource.subscribe(e => {
+			$("#count1").html('rxjs subscribe ' + (e.data.count + 100));
+		});
+		// view2.js: require(ee);
+		ee.on('countChange', function (e) {
+			$("#count2").html(e.data.count * 3);
+		});
+		// 看上去是双向绑定
+		ee.on('countChange', function (e) {
+			$("#c3").val(e.data.count);
+		});
+
+		var count = 0;
+		$('#ex3-btn').click(function () {
+			count++;
+			ee.emit('countChange', {count: count});
+		});
+		$("#c3").on('input propertychange', function (e) {
+			count = Number(e.target.value || 0);
+			ee.emit('countChange', {count: count});
+		});
+	}();
+</script>
+
+<div class="container">
+	<h2>4.实时搜索节流</h2>
+	<p>debounce和throttle是常见的事件处理函数</p>
+	<p>比如：滚动页面节流，搜索节流，点击节流</p>
+	<p>由于throttle放在事件源上（上一个例子的throttle是放在响应函数中），简化了响应函数。不足的是：需要手动unsubscribe前一个throttle source源</p>
+	<p>TODO 实现fromEvent的unsubscribe</p>
+	<div class="bd-example">
+		<div class="mb-1">throttle time(ms)：<input type="text" id="c4-1" value="200"></div>
+		<button id="ex4-btn" type="button" class="btn btn-primary">重置</button>
+		<button id="ex4-btn-1" type="button" class="btn btn-primary">模拟输入80次，每次输入间隔30ms</button>
+		<div class="card mt-3 mb-1">
+			<div class="mb-1">搜索框：<input type="text" id="c4-2"></div>
+			<p>search count: <span id="ex4-result">0</span></p>
+			<p>throttle search count: <span id="ex4-result-t">0</span></p>
+		</div>
+	</div>
+</div>
+<script>
+!function() {
+	var throttleTime = 200;
+	var originCount = 0;
+	var originFn = function () {
+		originCount++;
+		$('#ex4-result').html(originCount);
+	};
+
+	var throttleCount = 0;
+	var throttleOriginFn = function () {
+		throttleCount++;
+		$('#ex4-result-t').html(throttleCount);
+	}
+
+	// 搜索框改变
+	var searchSource = Rx.Observable.fromEvent($("#c4-2"), 'input propertychange');
+
+	searchSource
+	.subscribe(e => {
+		originFn();
+	});
+
+	searchSource.throttle(throttleTime)
+	.subscribe(e => {
+		throttleOriginFn();
+	});
+
+	// 重置按钮
+	Rx.Observable.fromEvent($("#ex4-btn"), 'click')
+	.subscribe(e => {
+		originCount = 0;
+		throttleCount = 0;
+	});
+
+	// 模拟80次, 绘图
+	var click80Source = Rx.Observable.fromEvent($("#ex4-btn-1"), 'click')
+	.switchMap(() => Rx.Observable.range(1, 80).concatMap(val => Rx.Observable.of(val).delay(30)));
+
+	click80Source
+	.subscribe((val) => {
+		originFn();
+	});
+
+	var throttleSubscribe = click80Source.throttle(throttleTime)
+	.subscribe(val => {
+		throttleOriginFn();
+	});
+
+
+	Rx.Observable.fromEvent($("#c4-1"), 'input propertychange')
+	.subscribe(e => {
+		throttleTime = Number(e.target.value || 200);
+		// 需要手动实现unsubscribe
+		// throttleSubscribe.unsubscribe();
+		// throttleSubscribe = click80Source.throttle(throttleTime)
+		// .subscribe(val => {
+		// 	throttleOriginFn();
+		// });
+	});
+
+}();
+</script>
+<div class="container">
+	<h2>5.路由跳转</h2>
+	<div class="bd-example">
+		<p>手机性能，页面逻辑导致点击无法立即响应，此处取300ms延迟</p>
+		<div class="card mt-3 mb-1">
+			<div class="mt-1 mb-1 ml-2">
+				<button id="ex5-btn" type="button" class="btn btn-primary">单页面路由跳转</button>
+				<button id="ex5-btn-b" type="button" class="btn btn-primary">history.back</button>
+			</div>
+			<div id="history" style="height: 200px;overflow: hidden;">
+				
+			</div>
+		</div>
+		<p>页面回退，由于history.back是缓存的，因此，再次点击可以再次引发跳转行为</p>
+		<div class="card mt-3 mb-1">
+			<div class="mt-1 mb-1 ml-2">
+				<button id="ex5-btn-1" type="button" class="btn btn-primary">单页面路由跳转保证唯一性</button>
+				<button id="ex5-btn-1b" type="button" class="btn btn-primary">history.back</button>
+			</div>
+			<div id="historyDistinct" style="height: 200px;overflow: hidden;">
+				
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+!function(){
+	function renderHistoryContent(_history) {
+		let pList = '';
+		_history.map(h => {
+			pList = '<p class="mb-0">' + h + '</p>' + pList;
+		});
+		return pList;
+	}
+
+	let history = [];
+	Rx.Observable.fromEvent($("#ex5-btn"), 'click')
+	.mergeMap(val => Rx.Observable.of(1).delay(300))  // 这个操作符仅仅是模拟设备性能和页面逻辑延迟
+	.map(e => 1)
+	.scan((acc, curr) => acc + curr, 0)
+	.subscribe(count => {
+		history.push('history ' + count);
+		$('#history').html(renderHistoryContent(history));
+	});
+	Rx.Observable.fromEvent($("#ex5-btn-b"), 'click')
+	.subscribe(e => {
+		history.pop();
+		$('#history').html(renderHistoryContent(history));
+	});
+
+
+
+
+	let distinctHistory = [];
+
+
+	let historyObservable = Rx.Observable.create(observer => {
+		Rx.Observable.fromEvent($("#ex5-btn-1"), 'click')
+		.mergeMap(val => Rx.Observable.of(1).delay(300)) // 这个操作符仅仅是模拟设备性能和页面逻辑延迟
+		.subscribe(e => {
+			observer.next(1);
+		});
+
+		Rx.Observable.fromEvent($("#ex5-btn-1b"), 'click')
+		.subscribe(e => {
+			observer.next(0);
+		});
+
+		return function () {
+			// i am unsubscribe function
+		}
+	});
+
+	historyObservable
+	.distinctUntilChanged()  // 关键处
+	.subscribe(status => {
+		if (status === 1) {
+			distinctHistory.push('history ' + status);
+			$('#historyDistinct').html(renderHistoryContent(distinctHistory));
+		} else {
+			distinctHistory.pop();
+			$('#historyDistinct').html(renderHistoryContent(distinctHistory));
+		}
+	});
+}();
+</script>
+
+<div class="container">
+	<h2>6.自定义操作符</h2>
+	<p>过滤170的手机号</p>
+	<p>创建名为filter170的操作符</p>
+	<p>更高级的自定义操作符，比如带回调函数的，比如累加的是如何实现的？</p>
+	<div class="bd-example">
+		<button id="ex6-btn" type="button" class="btn btn-primary">点击获取手机号列表</button>
+		<div class="mt-1 mb-1 ml-2" id="phonelist">
+			
+		</div>
+		<div class="mt-1 mb-1 ml-2" id="validphonelist">
+			
+		</div>
+	</div>
+</div>
+<script>
+Rx.Observable.prototype.filter170 = function () {
+	return this.filter(phone => {
+		return !/^170/.test(phone);
+	});
+}
+!function() {
+	var phonelist = ['18811726825', '15133257867', '17057940151'];
+	$('#ex6-btn').click(() => {
+		$('#phonelist').html(JSON.stringify(phonelist));
+
+		Rx.Observable.from(phonelist)
+		.filter170()
+		.reduce((acc, curr) => {acc.push(curr); return acc;}, [])
+		.subscribe(list => {
+			$('#validphonelist').html(JSON.stringify(list));
+		});
+	})
+
+}();
+</script>
+</body>
+</html>
