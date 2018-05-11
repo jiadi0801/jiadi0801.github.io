@@ -196,6 +196,57 @@ RN将APP运行状态抽象成`active`,`background`,`inactive`三种状态，在i
 ### JDScrollView作为FlatList的滚动渲染组件
 做商品列表，或者各种列表时会遇到下拉刷新的需求，下拉刷新统一采用京东下拉样式。因此采用JDScrollView作为FlatList的滚动渲染组件。
 
+但是这个组件存在一个问题，当列表高度不足容器高度时，JDScrollView的loading动画区域会露出来。
+
+![露出了loading占位区域](http://img12.360buyimg.com/uba/jfs/t18832/115/2442484073/531008/d567ada3/5af555f7N19733d9d.jpg)
+
+为了解决这个问题，可以通过传给FlatList的data数量，以及每个data的renderItem高度，来动态计算剩余空间，然后生成一个空View作为renderItem填充进行。
+
+但这种方法遇到Item高度不定的情形计算起来非常复杂，笔者利用另一种思路来解决这个问题。
+
+笔者解决这个问题的核心代码是：
+```
+<FlatList
+  renderScrollComponent={(props) => (<JDScrollView {...props} />)}
+  contentContainerStyle={{minHeight: this.state.tabContentHeight}}
+/> 
+```
+利用minHeight强制保证FlatList的内容区高度和容器高度一致。现在问题转化为，如何保证FlatList渲染时得到容器高度`tabContentHeight`？
+
+在RN中，从根节点到当前节点，如果在这条路径上的所有节点都具有`flex: 1`属性，那么，RN就能在渲染内容区之前确定本身的高度。
+
+利用这个信息，创建一个包裹组件，这个组件能获得他自身的高度：
+```JSX
+<ScrollHackWrap getAsyncHeight={(height) => { this.setState({tabContentHeight: height})}}>
+  <FlatList
+    renderScrollComponent={(props) => (<JDScrollView {...props} />)}
+    contentContainerStyle={{minHeight: this.state.tabContentHeight}}
+  />
+</ScrollHackWrap>
+```
+
+获取自身高度的原理是利用RN的onLayout属性。
+
+```JSX
+// ScrollHackWrap.js
+  getHeight(event) {
+    let { height } = event.nativeEvent.layout;
+    this.setState({
+      height: height
+    });
+    this.props.getAsyncHeight(height + this.indicatorHeight);
+  }
+
+  render() {
+    return (
+      <View onLayout={(event)=>{this.getHeight(event)}} style={{flex: 1}}>
+        {this.state.height > 0 && this.props.children}
+      </View>
+    );
+  }
+```
+
+这样，无论renderItem最后渲染的条目总高度是否低于容器高度，都能保证正确的显示。
 
 ## 编译打包和上线
 嗯~，这块就留给JDReact的官方文档吧。
