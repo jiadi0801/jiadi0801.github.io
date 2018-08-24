@@ -1,5 +1,7 @@
 # JDReact 全开发指南
 
+如果在开发过程中遇到问题，可以直接下拉到最后查看问题汇总。
+
 笔者曾数次打开 RN 官方文档，看着自己的 Windows 电脑默默的又把页面关了。对于 RN 以及 JDReact ，仅停留在这是一个拥有独特标签的 React 库的印象上。
 
 在着手 JDReact 开发后，发现它不仅仅只是一个 React 库那么简单，它的周边及组件库都有很多挑战。
@@ -298,6 +300,17 @@ RN 将 APP 运行状态抽象成`active`,`background`,`inactive`三种状态，�
 如果实现了自己的导航头，在京东APP的 WebView 内，就会出现双导航头的情况。
 
 解决这个问题的思路是`Platform.OS === 'web' && uaType() === 'jdapp'`，根据UA来判断是否处于京东APP内。
+
+### 入口参数
+
+以结算页为例，结算页需要拍品的id（paimaiId）和拍品类型(publishSource)两个参数，如果是原生接收，那么就要用到openapp，构造openapp的时候可传过去。
+
+如果是web跳原生RN，那么就需要构造&rn_paimaiId=xxx&rn_publishSource=xxxx
+
+如果是转web，建议后端将这两个参数写在jdreact给定好的vm模板的`GLOBAL_CONFIG`对象里，然后再入口文件里读取这个全局参数即可。
+
+小tips，像拍品id，拍品类型，拍卖状态，在整个应用里都是固定不变的，因此可以将这些状态直接写到context里，这样就省去了props传递，以及不必要的全局状态管理（能不用redux之类就不用吧）。
+
 
 ## 编译打包和上线
 嗯~，这块就留给JDReact的官方文档吧。
