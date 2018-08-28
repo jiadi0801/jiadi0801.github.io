@@ -281,6 +281,8 @@ RN 将 APP 运行状态抽象成`active`,`background`,`inactive`三种状态，�
 
 解决这两个问题，UC上的样式也就解决差不多了。
 
+TouchableWithoutFeedback组件下必须是View节点，Text节点和Image节点在转为H5时，不会响应点击事件
+
 ### 微信手Q登录
 
 微信手Q是最令人头疼的，开代理无法进行 https 跳转，缓存页面缓存 cookie 等问题。
