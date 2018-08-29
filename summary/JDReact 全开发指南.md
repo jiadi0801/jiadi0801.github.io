@@ -273,15 +273,16 @@ RN 将 APP 运行状态抽象成`active`,`background`,`inactive`三种状态，�
 
 若是 webkit 内核的浏览器，若发现有样式缺失，将具体样式补充在`contentContainerStyle`之类里即可，这部分工作本应该是由 JDReact 团队来做的。
 
-对于UC浏览器，核心是解决这两个问题。
+TouchableWithoutFeedback组件下必须是View节点，Text节点和Image节点在转为H5时，不会响应点击事件
+
+对于UC浏览器，核心是解决flex问题。
 
 1. 非 block 元素flex失效，也即inline, inline-block元素上用`display: flex`是无效的，而 RN 将 Text 之类转成了`inline-block`。
 
 2. `space-around`不可用，这个就很没道理，但UC缺失不支持这个属性，若可行，改成`space-between`。
 
-解决这两个问题，UC上的样式也就解决差不多了。
+3. `flex-wrap`不可用，这个没啥好解决的方法，量少的话，可用float代替。
 
-TouchableWithoutFeedback组件下必须是View节点，Text节点和Image节点在转为H5时，不会响应点击事件
 
 ### 微信手Q登录
 
